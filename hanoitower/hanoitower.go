@@ -25,7 +25,7 @@ func newTower(name string, initialHeight int) *tower {
 	return &t
 }
 
-func printTower(tower *tower) {
+func (tower tower) print() {
 	fmt.Printf("Tower[%s] : [", tower.name)
 	for _, disk := range tower.disks {
 		fmt.Printf(" D%d ", disk.size)
@@ -33,15 +33,27 @@ func printTower(tower *tower) {
 	fmt.Println("]")
 }
 
+func (tower *tower) takeFrom(source *tower) {
+	sourceHeight := len(source.disks)
+	diskToMove := source.disks[sourceHeight-1]
+	source.disks = source.disks[:sourceHeight-1]
+
+	destHeight := len(tower.disks)
+	if destHeight > 0 {
+		baseDisk := tower.disks[destHeight-1]
+		if baseDisk.size <= diskToMove.size {
+			panic("Cannot move this disk")
+		}
+	}
+	tower.disks = append(tower.disks, diskToMove)
+}
+
 func move(disks int, source *tower, intermed *tower, dest *tower, allTowers []*tower) {
 	if disks == 1 {
 		fmt.Printf("Move a disk from %s to %s\n", source.name, dest.name)
-		sourceHeight := len(source.disks)
-		diskToMove := source.disks[sourceHeight-1]
-		source.disks = source.disks[:sourceHeight-1]
-		dest.disks = append(dest.disks, diskToMove)
+		dest.takeFrom(source)
 		for _, tower := range allTowers {
-			printTower(tower)
+			tower.print()
 		}
 	} else if disks > 1 {
 		move(disks-1, source, dest, intermed, allTowers)
